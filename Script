@@ -1,0 +1,199 @@
+#/bin/bash
+#Increase Time Out Of Seesion and Reload Services
+sudo echo 'ClientAliveInterval 60' | sudo tee --append /etc/ssh/sshd_config
+sudo systemctl daemon-reload
+#Create a user rahul and assgin password kundra |Add rahul User To Sudoers file
+sudo useradd -p $(openssl passwd -1 kundra) rahul
+sudo vi /etc/sudoers
+rahul   ALL=(ALL)  NOPASSWD: ALL
+sudo su - rahul
+#Single line to create user with password and in sudo group
+useradd -p $(openssl passwd -1 kundraone) rahulone -s /bin/bash -G wheel
+#Installing Basic Package For DevOps
+sudo yum install -y vim 
+sudo yum install -y wget
+sudo yum install -y bash-completion
+#Install Cockpit | Start Cockpit At Boot Time 
+sudo yum install -y cockpit  
+sudo systemctl enable cockpit.socket --now 
+sudo systemctl start cockpit.socket --now
+#Add Password Authentication Method  | restart ssh service 
+sudo sed -i "/^[^#]*PasswordAuthentication[[:space:]]no/c\PasswordAuthentication yes" /etc/ssh/sshd_config
+sudo service sshd restart
+#Install Java 11 Version |Set Java Path Both Thempory and Permananet
+sudo yum install -y fontconfig java-11-openjdk
+export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-11.0.16.1.1-1.el8_6.x86_64
+export PATH=$PATH:$JAVA_HOME/bin
+#Install Git | Set UserName and Email id
+sudo yum install -y git
+git config --global user.name "RAHUL KUNDRA"
+git config --global user.email  "happykundra7987@gmail.com"
+#Install Jenkins |Start Jenkins At Boot Time |See Jenkins Password
+sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+sudo yum install -y jenkins
+sudo systemctl enable jenkins --now
+sudo systemctl start jenkins --now
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword 
+#Install Maven |Set Path Both Thempory and Permananet
+wget https://dlcdn.apache.org/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.zip
+sudo yum install -y unzip 
+unzip apache-maven-3.8.6-bin.zip
+sudo mv /home/rahul/apache-maven-3.8.6 /opt/apache-maven-3.8.6
+rm -rf /home/rahul/apache-maven-3.8.6-bin.zip
+export M2_HOME=/opt/apache-maven-3.8.6
+export PATH=${M2_HOME}/bin:${PATH}
+#Install Docker | Start Docker At Boot Time
+sudo cat <<EOF | sudo tee /etc/yum.repos.d/docker-ce.repo 
+[docker-ce-stable]
+name=Docker CE Stable - $basearch
+baseurl=https://download.docker.com/linux/centos/8/x86_64/stable/
+enabled=1
+gpgcheck=1
+gpgkey=https://download.docker.com/linux/centos/gpg
+EOF
+sudo yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+sudo systemctl enable docker --now
+sudo systemctl start docker --now
+sudo systemctl status docker
+sudo docker --version
+#Install Ansible | Install Python | Set Python 3 In Default Path 
+sudo yum install -y ansible 
+sudo yum install python3 -y
+sudo sudo alternatives --set python /usr/bin/python3
+sudo ansible --version
+sudo python3 --version
+#Install Ngnix |Start Ngnix At Boot Time
+sudo cat <<EOF | sudo tee /etc/yum.repos.d/nginx.repo 
+[nginx-stable]
+name=nginx stable repo
+baseurl=http://nginx.org/packages/centos/$releasever/$basearch/
+gpgcheck=1
+enabled=1
+gpgkey=https://nginx.org/keys/nginx_signing.key
+module_hotfixes=true
+EOF
+sudo yum update -y 
+sudo yum install -y nginx
+sudo systemctl enable nginx --now
+sudo systemctl start nginx  --now
+#Install Apache |Set Port No 90 |Start Apache At Boot Time
+sudo yum update -y 
+sudo yum install -y httpd
+sudo systemctl enable httpd --now
+sudo systemctl start httpd --now
+sudo firewall-cmd --permanent --zone=public --add-service=http
+sudo firewall-cmd --permanent --zone=public --add-service=https
+firewall-cmd --permanent --add-port=90/tcp
+sudo firewall-cmd --reload
+#Install MongoDB |Start At Boot Time | See Version
+sudo cat <<EOF | sudo tee etc/yum.repos.d/mongodb-org-6.0.repo
+[mongodb-org-6.0]
+name=MongoDB Repository
+baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/6.0/x86_64/
+gpgcheck=1
+enabled=1
+gpgkey=https://www.mongodb.org/static/pgp/server-6.0.asc
+EOF
+sudo yum install -y mongodb-org
+sudo systemctl status mongod
+systemctl status mongod
+sudo systemctl daemon-reload
+sudo systemctl enable mongod
+sudo systemctl start mongod
+mongod --version
+mongosh
+sudo yum -y install httpd php gcc glibc glibc-common wget perl gd gd-devel unzip zip tar
+sudo groupadd nagcmd
+sudo useradd nagios
+sudo useradd apache 
+sudo usermod -a -G nagcmd nagios
+sudo usermod -a -G nagcmd apache
+cd /tmp/
+wget https://assets.nagios.com/downloads/nagioscore/releases/nagios-4.4.5.tar.gz
+tar -zxvf nagios-4.4.5.tar.gz
+cd /tmp/nagios-4.4.5/
+cd /tmp/
+wget https://assets.nagios.com/downloads/nagioscore/releases/nagios-4.4.5.tar.gz
+tar -zxvf nagios-4.4.5.tar.gz
+cd /tmp/nagios-4.4.5/
+./configure --with-nagios-group=nagios --with-command-group=nagcmd
+sudo make all
+sudo make install
+sudo make install-init
+sudo make install-config
+sudo make install-commandmode
+sudo make install-webconf
+sudo htpasswd -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
+sudo systemctl restart httpd
+sudo systemctl enable httpd
+sudo systemctl restart httpd
+sudo systemctl enable httpd
+
+vi /usr/local/nagios/etc/objects/contacts.cfg
+:wq!
+cd /tmp
+wget https://nagios-plugins.org/download/nagios-plugins-2.2.1.tar.gz
+tar -zxvf nagios-plugins-2.2.1.tar.gz
+cd /tmp/nagios-plugins-2.2.1/
+./configure --with-nagios-user=nagios --with-nagios-group=nagios
+make
+make install
+/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+
+vim /etc/systemd/system/nagios.service
+# and added the following:
+
+[Unit]
+Description=Nagios
+BindTo=network.target
+
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+User=nagios
+Group=nagios
+Type=simple
+ExecStart=/usr/local/nagios/bin/nagios /usr/local/nagios/etc/nagios.cfg
+:wq!
+#Then the following:
+systemctl enable /etc/systemd/system/nagios.service
+systemctl  start nagios
+systemctl  restart nagios
+/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+getenforce
+setenforce 0
+firewall-cmd --permanent --add-service=http
+firewall-cmd --reload
+http://65.2.190.128/nagios/
+
+#Kuberntes Script 
+#In Master And Nodes 
+sudo su
+apt-get update
+apt-get install apt-transport-https
+apt install -y docker.io 
+docker --version
+systemctl start docker
+systemctl enable docker
+sudo curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg |sudo apt-key add
+vim /etc/apt/sources.list.d/kubernetes.list
+deb http://apt.kubernetes.io/ kubernetes-xenial main
+apt-get update
+apt-get install -y kubelet kubeadm kubectl kubernetes-cni
+
+#BOOTSTRAPPING THE MASTER NODE (IN MASTER)
+kubeadm init
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-old-manifests/kube-flannel-rbac.yml
+
+#Both Node 1 and Node2 for host to join 
+kubeadm join 172.31.47.167:6443 --token as1ln2.h0omu32b5l4x6k1s --discovery-token-ca-cert-hash sha256:e9257075e40581372d5b94a6e8fe611509003e831180fcdddb5e1299e16668d8
+
+#On Master for cheking nodes connect or nodes
+kubectl get nodes
